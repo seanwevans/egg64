@@ -76,6 +76,9 @@ static void rotate_y(float x, float z, float angle, float *out_x,
 void draw_model(model_t *model, surface_t *disp, float angle) {
   rdpq_attach(disp, NULL);
 
+  float half_w = disp->width / 2.0f;
+  float half_h = disp->height / 2.0f;
+
   color_t gold = RGBA32(255, 215, 0, 255);
   rdpq_set_mode_fill(gold);
 
@@ -105,8 +108,8 @@ void draw_model(model_t *model, surface_t *disp, float angle) {
         goto skip_triangle;
 
       float scale = 200.0f / (rz + 3.0f);
-      int sx = (int)(160 + rx * scale);
-      int sy = (int)(120 - y * scale);
+      int sx = (int)(half_w + rx * scale);
+      int sy = (int)(half_h - y * scale);
 
       screen_coords[j][0] = sx;
       screen_coords[j][1] = sy;
