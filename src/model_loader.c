@@ -27,7 +27,20 @@ model_t load_obj_model(const char *path) {
   }
 
   model.vertices = malloc(sizeof(float) * 3 * v_count);
+  if (!model.vertices) {
+    printf("Could not allocate vertices\n");
+    fclose(f);
+    return (model_t){0};
+  }
+
   model.indices = malloc(sizeof(int) * 3 * f_count);
+  if (!model.indices) {
+    printf("Could not allocate indices\n");
+    free(model.vertices);
+    fclose(f);
+    return (model_t){0};
+  }
+
   model.vertex_count = v_count;
   model.index_count = f_count * 3;
 

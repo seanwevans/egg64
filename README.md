@@ -17,3 +17,7 @@ A Nintendo 64 homebrew project about an egg.
 4. Use `make clean` to remove build artifacts.
 
 `egg64.z64` can be loaded in an emulator or on hardware.
+
+## License
+
+This project is licensed under the terms of the [MIT License](LICENSE).
