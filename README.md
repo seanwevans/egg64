@@ -15,6 +15,8 @@ A Nintendo 64 homebrew project about an egg.
 2. Ensure the `LIBDRAGON` path in the `Makefile` points to your libdragon installation.
 3. Run `make`. The default target builds `egg64.z64`.
 4. Use `make clean` to remove build artifacts.
+5. When the ROM starts, it verifies that `egg.obj` loaded correctly. If the
+   model fails to load, an error is printed and the program exits.
 
 `egg64.z64` can be loaded in an emulator or on hardware.
 
