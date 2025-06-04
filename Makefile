@@ -2,7 +2,7 @@
 
 ROM_NAME = egg64
 
-LIBDRAGON = /opt/libdragon
+LIBDRAGON ?= /opt/libdragon
 
 CC = mips64-elf-gcc
 CFLAGS = -I$(LIBDRAGON)/mips64-elf/include -Iinclude -std=gnu99 -O2
