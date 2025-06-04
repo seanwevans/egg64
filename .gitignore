@@ -1,0 +1,7 @@
+# Build artifacts
+build/
+
+# Nintendo 64 ROM and binary outputs
+*.z64
+*.elf
+*.bin
