@@ -27,7 +27,16 @@ int main(void) {
     graphics_fill_screen(disp, graphics_make_color(0, 0, 32, 255));
     draw_model(&egg_model, disp, angle);
     display_show(disp);
+
+    // Press START to exit the program loop
+    if (keys.c[0].start)
+      break;
   }
+
+  free_model(&egg_model);
+  rdpq_close();
+  rspq_close();
+  display_close();
 
   return 0;
 }
