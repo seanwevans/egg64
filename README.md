@@ -12,7 +12,7 @@ A Nintendo 64 homebrew project about an egg.
 ## Building
 
 1. Clone this repository.
-2. Ensure the `LIBDRAGON` path in the `Makefile` points to your libdragon installation.
+2. Ensure the `LIBDRAGON` path in the `Makefile` points to your libdragon installation. Alternatively, run `make LIBDRAGON=/path/to/libdragon` to override the default.
 3. Run `make`. The default target builds `egg64.z64`.
 4. Use `make clean` to remove build artifacts.
 
