@@ -5,7 +5,7 @@ ROM_NAME = egg64
 LIBDRAGON = /opt/libdragon
 
 CC = mips64-elf-gcc
-CFLAGS = -I$(LIBDRAGON)/mips64-elf/include -Iinclude -std=gnu99 -O2
+CFLAGS = -I$(LIBDRAGON)/mips64-elf/include -Iinclude -std=gnu99 -O2 -Wall -Wextra
 
 LD = mips64-elf-ld
 LDFLAGS = -L$(LIBDRAGON)/mips64-elf/lib -ldragon -ldragonsys -lc -lm -lgcc -lnosys
