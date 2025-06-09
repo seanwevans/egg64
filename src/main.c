@@ -1,6 +1,7 @@
 // src/main.c
 
 #include "model_loader.h"
+#include <stdio.h>
 
 int main(void) {
   display_init(RESOLUTION_320x240, DEPTH_16_BPP, 2, GAMMA_NONE,
@@ -12,6 +13,14 @@ int main(void) {
   rspq_init();
 
   model_t egg_model = load_obj_model("rom:/egg.obj");
+  if (egg_model.vertex_count == 0 || egg_model.vertices == NULL) {
+    printf("Failed to load egg model\n");
+    free_model(&egg_model);
+    rdpq_close();
+    rspq_close();
+    display_close();
+    return 1;
+  }
   float angle = 0.0f;
 
   while (1) {
