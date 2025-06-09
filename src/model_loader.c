@@ -210,6 +210,8 @@ void draw_model(model_t *model, surface_t *disp, float angle) {
 }
 
 void free_model(model_t *model) {
-  free(model->vertices);
-  free(model->indices);
+  if (model->vertices)
+    free(model->vertices);
+  if (model->indices)
+    free(model->indices);
 }
