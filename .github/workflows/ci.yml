@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install libdragon dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            python3 \
+            python3-pip \
+            git \
+            wget \
+            libpng-dev \
+            pkg-config \
+            ca-certificates
+
+      - name: Install libdragon toolchain
+        run: |
+          git clone --depth 1 https://github.com/DragonMinded/libdragon.git /tmp/libdragon
+          sudo make -C /tmp/libdragon/tools install
+          echo "/opt/libdragon/bin" >> "$GITHUB_PATH"
+
+      - name: Build ROM
+        run: make
+
+      - name: Clean build artifacts
+        run: make clean
