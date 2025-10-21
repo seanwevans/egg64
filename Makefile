@@ -3,10 +3,17 @@
 ROM_NAME = egg64
 
 LIBDRAGON ?= /opt/libdragon
-# The libdragon toolchain installs the cross-compilers in the top-level
-# "bin" directory rather than under mips64-elf/.  Point the toolchain
-# directory there so CC resolves to /opt/libdragon/bin/mips64-elf-gcc by
-# default.
+
+# Support both the modern libdragon layout (toolchain in $(LIBDRAGON)/bin)
+# and the older layout (toolchain in $(LIBDRAGON)/mips64-elf/bin).  When the
+# newer location is missing but the legacy one exists, prefer the legacy
+# directory.  Users can still override TOOLCHAIN explicitly when invoking
+# make.
+ifeq ($(wildcard $(LIBDRAGON)/bin/mips64-elf-gcc),)
+ifneq ($(wildcard $(LIBDRAGON)/mips64-elf/bin/mips64-elf-gcc),)
+TOOLCHAIN ?= $(LIBDRAGON)/mips64-elf/bin
+endif
+endif
 TOOLCHAIN ?= $(LIBDRAGON)/bin
 MIPS_PREFIX ?= $(TOOLCHAIN)/mips64-elf-
 
