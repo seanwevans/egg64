@@ -3,7 +3,11 @@
 ROM_NAME = egg64
 
 LIBDRAGON ?= /opt/libdragon
-TOOLCHAIN ?= $(LIBDRAGON)/mips64-elf/bin
+# The libdragon toolchain installs the cross-compilers in the top-level
+# "bin" directory rather than under mips64-elf/.  Point the toolchain
+# directory there so CC resolves to /opt/libdragon/bin/mips64-elf-gcc by
+# default.
+TOOLCHAIN ?= $(LIBDRAGON)/bin
 MIPS_PREFIX ?= $(TOOLCHAIN)/mips64-elf-
 
 CC = $(MIPS_PREFIX)gcc
