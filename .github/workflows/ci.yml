@@ -28,9 +28,11 @@ jobs:
 
       - name: Install libdragon toolchain
         run: |
-          git clone --depth 1 https://github.com/DragonMinded/libdragon.git /tmp/libdragon
-          sudo make -C /tmp/libdragon/tools install
+          TOOLCHAIN_URL="https://github.com/DragonMinded/libdragon/releases/download/toolchain-continuous-prerelease/gcc-toolchain-mips64-x86_64.deb"
+          wget --quiet "$TOOLCHAIN_URL" -O /tmp/libdragon-toolchain.deb
+          sudo apt-get install -y /tmp/libdragon-toolchain.deb
           echo "/opt/libdragon/bin" >> "$GITHUB_PATH"
+          echo "N64_INST=/opt/libdragon" >> "$GITHUB_ENV"
 
       - name: Build ROM
         run: make
