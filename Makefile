@@ -3,7 +3,18 @@
 ROM_NAME = egg64
 
 LIBDRAGON ?= /opt/libdragon
+
+# Support both the modern libdragon layout (toolchain in $(LIBDRAGON)/bin)
+# and the older layout (toolchain in $(LIBDRAGON)/mips64-elf/bin).  When the
+# newer location is missing but the legacy one exists, prefer the legacy
+# directory.  Users can still override TOOLCHAIN explicitly when invoking
+# make.
+ifeq ($(wildcard $(LIBDRAGON)/bin/mips64-elf-gcc),)
+ifneq ($(wildcard $(LIBDRAGON)/mips64-elf/bin/mips64-elf-gcc),)
 TOOLCHAIN ?= $(LIBDRAGON)/mips64-elf/bin
+endif
+endif
+TOOLCHAIN ?= $(LIBDRAGON)/bin
 MIPS_PREFIX ?= $(TOOLCHAIN)/mips64-elf-
 
 CC = $(MIPS_PREFIX)gcc
