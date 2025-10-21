@@ -3,15 +3,17 @@
 ROM_NAME = egg64
 
 LIBDRAGON ?= /opt/libdragon
+TOOLCHAIN ?= $(LIBDRAGON)/mips64-elf/bin
+MIPS_PREFIX ?= $(TOOLCHAIN)/mips64-elf-
 
-CC = mips64-elf-gcc
+CC = $(MIPS_PREFIX)gcc
 CFLAGS = -I$(LIBDRAGON)/mips64-elf/include -Iinclude -std=gnu99 -O2 -Wall -Wextra
 
-LD = mips64-elf-ld
+LD = $(MIPS_PREFIX)ld
 LDFLAGS = -L$(LIBDRAGON)/mips64-elf/lib -ldragon -ldragonsys -lc -lm -lgcc -lnosys
 
-OBJCOPY = mips64-elf-objcopy
-N64TOOL = n64tool
+OBJCOPY = $(MIPS_PREFIX)objcopy
+N64TOOL ?= $(LIBDRAGON)/bin/n64tool
 
 OBJS = build/main.o build/model_loader.o
 
