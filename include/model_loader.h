@@ -14,4 +14,6 @@ typedef struct {
 // fails.
 model_t load_obj_model(const char *path);
 void draw_model(model_t *model, surface_t *disp, float angle);
+// Free model allocations and reset all fields.
+// Safe to call multiple times on the same model instance.
 void free_model(model_t *model);
