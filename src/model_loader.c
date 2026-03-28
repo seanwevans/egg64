@@ -60,8 +60,8 @@ model_t load_obj_model(const char *path) {
       model.vertices[vi++] = y;
       model.vertices[vi++] = z;
     } else if (strncmp(line, "f ", 2) == 0) {
-      int a, b, c;
-      int parsed = sscanf(line, "f %d %d %d", &a, &b, &c);
+      int a, b, c;      
+      int parsed = sscanf(line, "f %d/%*d/%*d %d/%*d/%*d %d/%*d/%*d", &a, &b, &c);
       if (parsed != 3) {
         printf("OBJ parse error at line %d (face): %s", line_no, line);
         goto fail;
@@ -103,8 +103,12 @@ static void rotate_y(float x, float z, float angle, float *out_x,
 }
 
 void draw_model(model_t *model, surface_t *disp, float angle) {
-  rdpq_attach(disp, NULL);
-
+  rdpq_attach(disp, NULL);  
+  rdpq_set_mode_fill(RGBA32(0, 0, 32, 255));
+  rdpq_fill_rectangle(0, 0, disp->width, disp->height);  
+  color_t gold = RGBA32(255, 215, 0, 255);
+  rdpq_set_mode_fill(gold);
+  
   float half_w = disp->width / 2.0f;
   float half_h = disp->height / 2.0f;
   int clip_min_x = 0;
