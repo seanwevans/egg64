@@ -78,6 +78,10 @@ void draw_model(model_t *model, surface_t *disp, float angle) {
 
   float half_w = disp->width / 2.0f;
   float half_h = disp->height / 2.0f;
+  int clip_min_x = 0;
+  int clip_max_x = disp->width - 1;
+  int clip_min_y = 0;
+  int clip_max_y = disp->height - 1;
 
   color_t gold = RGBA32(255, 215, 0, 255);
   rdpq_set_mode_fill(gold);
@@ -150,7 +154,17 @@ void draw_model(model_t *model, surface_t *disp, float angle) {
       screen_coords[1][1] = temp_y;
     }
 
-    for (int y = screen_coords[0][1]; y <= screen_coords[2][1]; y++) {
+    // Screen coordinates use x rightward and y downward; raster bounds are inclusive [0..width-1] and [0..height-1].
+    int min_y = screen_coords[0][1];
+    int max_y = screen_coords[2][1];
+    if (min_y < clip_min_y)
+      min_y = clip_min_y;
+    if (max_y > clip_max_y)
+      max_y = clip_max_y;
+    if (min_y > max_y)
+      goto skip_triangle;
+
+    for (int y = min_y; y <= max_y; y++) {
       int x_left, x_right;
 
       if (y < screen_coords[1][1]) {
@@ -197,9 +211,14 @@ void draw_model(model_t *model, surface_t *disp, float angle) {
         x_right = temp;
       }
 
-      if (x_left < x_right) {
-        rdpq_fill_rectangle(x_left, y, x_right + 1, y + 1);
-      }
+      if (x_left < clip_min_x)
+        x_left = clip_min_x;
+      if (x_right > clip_max_x)
+        x_right = clip_max_x;
+      if (x_left > x_right)
+        continue;
+
+      rdpq_fill_rectangle(x_left, y, x_right + 1, y + 1);
     }
 
   skip_triangle:
