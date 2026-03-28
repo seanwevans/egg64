@@ -1,7 +1,26 @@
-# Build artifacts
 build/
-
-# Nintendo 64 ROM and binary outputs
+*.o
+*.d
+*.map
 *.z64
+*.n64
+*.v64
 *.elf
 *.bin
+*.rompak
+*.sprite
+*.wav64
+*.xm64
+*.ym64
+*.font64
+.vscode/
+.idea/
+*.swp
+*~
+compile_commands.json
+.cache/
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
