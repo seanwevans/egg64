@@ -20,6 +20,23 @@ A Nintendo 64 homebrew project about an egg.
 
 `egg64.z64` can be loaded in an emulator or on hardware.
 
+## Development checks
+
+Run these before opening a PR:
+
+1. Standard build check:
+   - `make clean && make`
+2. Stricter warning check:
+   - `make clean && make EXTRA_WARNINGS="-Wshadow -Wconversion"`
+
+Notes about warnings/suppressions:
+
+- The build deliberately uses `-Wno-error=deprecated-declarations` because
+  some libdragon APIs currently used by this project are deprecated but still
+  required for compatibility.
+- libdragon headers are added with `-isystem` so strict warning checks focus on
+  project code (`src/` and `include/`) instead of third-party SDK noise.
+
 ## License
 
 This project is licensed under the terms of the [MIT License](LICENSE).
