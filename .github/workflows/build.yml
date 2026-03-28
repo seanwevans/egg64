@@ -1,0 +1,54 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      LIBDRAGON: /opt/libdragon
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build ROM
+        run: make
+
+      - name: Strict warning compile (non-blocking)
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          make clean
+          make EXTRA_WARNINGS="-Wshadow -Wconversion" 2>&1 | tee strict-warnings.log
+
+      - name: Fail on project warnings from strict compile
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          log_path = Path('strict-warnings.log')
+          if not log_path.exists():
+              print('strict-warnings.log was not produced; strict compile likely failed before logging warnings.')
+              raise SystemExit(0)
+
+          warning_re = re.compile(r'^(src|include)/[^:\n]+:\d+:\d+: warning:')
+          warnings = []
+
+          for line in log_path.read_text(encoding='utf-8', errors='replace').splitlines():
+              if warning_re.search(line):
+                  warnings.append(line)
+
+          if warnings:
+              print('Project warnings detected during strict compile:')
+              for warning in warnings:
+                  print(warning)
+              raise SystemExit(1)
+
+          print('No project warnings detected during strict compile.')
+          PY

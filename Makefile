@@ -21,14 +21,21 @@ MIPS_PREFIX ?= $(TOOLCHAIN)/mips64-elf-
 CC  = $(MIPS_PREFIX)gcc
 LD  = $(MIPS_PREFIX)gcc
 
-# Use the top-level include directory with modern libdragon.  The cross
-# compiler already knows how to search $(MIPS_PREFIX)include, so there is
-# no need to explicitly include it.  Suppress deprecation warnings as
-# errors because libdragon deprecated some APIs (like controller_scan) but
-# still provides them.  Failing compilation on deprecation warnings would
-# break the build.
-CFLAGS = -I$(LIBDRAGON)/include -Iinclude -std=gnu99 -O2 -Wall -Wextra \
-    -Wno-error=deprecated-declarations
+# Use the top-level include directory with modern libdragon.
+#
+# We include libdragon through -isystem so warnings coming from SDK headers do
+# not drown out warnings from project code when running stricter CI checks.
+#
+# Deliberate suppression: keep deprecated libdragon APIs as non-fatal because
+# some currently-used APIs (for example controller_scan) are intentionally
+# deprecated but still required for compatibility.
+BASE_CFLAGS = -isystem $(LIBDRAGON)/include -Iinclude -std=gnu99 -O2 -Wall \
+    -Wextra -Wno-error=deprecated-declarations
+
+# Optional warning flags used by stricter local/CI checks.
+EXTRA_WARNINGS ?=
+
+CFLAGS = $(BASE_CFLAGS) $(EXTRA_WARNINGS)
 
 # Link against libdragon.  The modern layout installs libraries under
 # $(LIBDRAGON)/lib; the linker will search the appropriate libgcc/nostd
