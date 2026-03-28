@@ -29,16 +29,13 @@ model_t load_obj_model(const char *path) {
   model.vertices = malloc(sizeof(float) * 3 * v_count);
   if (!model.vertices) {
     printf("Could not allocate vertices\n");
-    fclose(f);
-    return (model_t){0};
+    goto fail;
   }
 
   model.indices = malloc(sizeof(int) * 3 * f_count);
   if (!model.indices) {
     printf("Could not allocate indices\n");
-    free(model.vertices);
-    fclose(f);
-    return (model_t){0};
+    goto fail;
   }
 
   model.vertex_count = v_count;
@@ -47,24 +44,56 @@ model_t load_obj_model(const char *path) {
   rewind(f);
 
   int vi = 0, ii = 0;
+  int line_no = 0;
   while (fgets(line, sizeof(line), f)) {
+    line_no++;
+
     if (strncmp(line, "v ", 2) == 0) {
       float x, y, z;
-      sscanf(line, "v %f %f %f", &x, &y, &z);
+      int parsed = sscanf(line, "v %f %f %f", &x, &y, &z);
+      if (parsed != 3) {
+        printf("OBJ parse error at line %d (vertex): %s", line_no, line);
+        goto fail;
+      }
+
       model.vertices[vi++] = x;
       model.vertices[vi++] = y;
       model.vertices[vi++] = z;
     } else if (strncmp(line, "f ", 2) == 0) {
       int a, b, c;
-      sscanf(line, "f %d %d %d", &a, &b, &c);
-      model.indices[ii++] = a - 1;
-      model.indices[ii++] = b - 1;
-      model.indices[ii++] = c - 1;
+      int parsed = sscanf(line, "f %d %d %d", &a, &b, &c);
+      if (parsed != 3) {
+        printf("OBJ parse error at line %d (face): %s", line_no, line);
+        goto fail;
+      }
+
+      int face_indices[3] = {a - 1, b - 1, c - 1};
+      for (int j = 0; j < 3; j++) {
+        if (face_indices[j] < 0 || face_indices[j] >= model.vertex_count) {
+          printf("OBJ invalid vertex index at line %d: %s", line_no, line);
+          goto fail;
+        }
+        model.indices[ii++] = face_indices[j];
+      }
     }
+  }
+
+  if (vi != model.vertex_count * 3 || ii != model.index_count) {
+    printf("OBJ integrity check failed: vi=%d expected=%d, ii=%d expected=%d\n",
+           vi, model.vertex_count * 3, ii, model.index_count);
+    goto fail;
   }
 
   fclose(f);
   return model;
+
+fail:
+  if (model.vertices)
+    free(model.vertices);
+  if (model.indices)
+    free(model.indices);
+  fclose(f);
+  return (model_t){0};
 }
 
 static void rotate_y(float x, float z, float angle, float *out_x,
