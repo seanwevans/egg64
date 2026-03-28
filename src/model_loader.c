@@ -8,6 +8,58 @@
 #include <libdragon.h>
 #include <math.h>
 
+static int parse_obj_face_vertex_index(const char *token, int vertex_count,
+                                       int *out_index) {
+  if (!token || !*token)
+    return 0;
+
+  char *end = NULL;
+  long raw_index = strtol(token, &end, 10);
+  if (end == token)
+    return 0;
+
+  // Accept "v", "v/vt", "v/vt/vn", or "v//vn" tokens by reading only the
+  // leading vertex index before the first '/'.
+  if (*end != '\0' && *end != '/')
+    return 0;
+
+  int index = 0;
+  if (raw_index > 0) {
+    index = (int)raw_index - 1;
+  } else if (raw_index < 0) {
+    index = vertex_count + (int)raw_index;
+  } else {
+    return 0;
+  }
+
+  if (index < 0 || index >= vertex_count)
+    return 0;
+
+  *out_index = index;
+  return 1;
+}
+
+static int parse_obj_face_indices(char *line, int vertex_count, int *out_indices,
+                                  int max_indices) {
+  int count = 0;
+  char *save = NULL;
+  char *tok = strtok_r(line, " \t\r\n", &save);
+
+  if (!tok || strcmp(tok, "f") != 0)
+    return -1;
+
+  while ((tok = strtok_r(NULL, " \t\r\n", &save)) != NULL) {
+    int index = 0;
+    if (!parse_obj_face_vertex_index(tok, vertex_count, &index))
+      return -1;
+    if (count >= max_indices)
+      return -1;
+    out_indices[count++] = index;
+  }
+
+  return count;
+}
+
 model_t load_obj_model(const char *path) {
   model_t model = {0};
 
@@ -17,13 +69,21 @@ model_t load_obj_model(const char *path) {
     return model;
   }
 
-  int v_count = 0, f_count = 0;
+  int v_count = 0, tri_count = 0;
   char line[256];
   while (fgets(line, sizeof(line), f)) {
     if (strncmp(line, "v ", 2) == 0)
       v_count++;
-    if (strncmp(line, "f ", 2) == 0)
-      f_count++;
+    if (strncmp(line, "f ", 2) == 0) {
+      char face_line[256];
+      int face_indices[64];
+      strncpy(face_line, line, sizeof(face_line) - 1);
+      face_line[sizeof(face_line) - 1] = '\0';
+      int face_count =
+          parse_obj_face_indices(face_line, v_count, face_indices, 64);
+      if (face_count >= 3)
+        tri_count += face_count - 2;
+    }
   }
 
   model.vertices = malloc(sizeof(float) * 3 * v_count);
@@ -33,16 +93,20 @@ model_t load_obj_model(const char *path) {
     return (model_t){0};
   }
 
-  model.indices = malloc(sizeof(int) * 3 * f_count);
-  if (!model.indices) {
-    printf("Could not allocate indices\n");
-    free(model.vertices);
-    fclose(f);
-    return (model_t){0};
+  if (tri_count > 0) {
+    model.indices = malloc(sizeof(int) * 3 * tri_count);
+    if (!model.indices) {
+      printf("Could not allocate indices\n");
+      free(model.vertices);
+      fclose(f);
+      return (model_t){0};
+    }
+  } else {
+    model.indices = NULL;
   }
 
   model.vertex_count = v_count;
-  model.index_count = f_count * 3;
+  model.index_count = tri_count * 3;
 
   rewind(f);
 
@@ -55,11 +119,37 @@ model_t load_obj_model(const char *path) {
       model.vertices[vi++] = y;
       model.vertices[vi++] = z;
     } else if (strncmp(line, "f ", 2) == 0) {
-      int a, b, c;
-      sscanf(line, "f %d %d %d", &a, &b, &c);
-      model.indices[ii++] = a - 1;
-      model.indices[ii++] = b - 1;
-      model.indices[ii++] = c - 1;
+      int face_indices[64];
+      char face_line[256];
+      strncpy(face_line, line, sizeof(face_line) - 1);
+      face_line[sizeof(face_line) - 1] = '\0';
+
+      // Supported OBJ subset:
+      // - vertex positions ("v")
+      // - faces ("f") with tokens: v, v/vt, v/vt/vn, v//vn
+      // - negative indices (relative to current vertex count)
+      // Limitations:
+      // - ignores vt/vn payloads
+      // - ignores faces with malformed/out-of-range indices
+      // - face token count capped at 64 for this loader
+      int face_count =
+          parse_obj_face_indices(face_line, model.vertex_count, face_indices, 64);
+      if (face_count < 3) {
+        printf("Warning: skipping malformed/degenerate face in %s: %s", path,
+               line);
+        continue;
+      }
+
+      for (int i = 1; i + 1 < face_count; i++) {
+        if (ii + 2 >= model.index_count) {
+          printf("Warning: skipping face due to index buffer overflow in %s\n",
+                 path);
+          break;
+        }
+        model.indices[ii++] = face_indices[0];
+        model.indices[ii++] = face_indices[i];
+        model.indices[ii++] = face_indices[i + 1];
+      }
     }
   }
 
